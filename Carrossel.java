@@ -6,36 +6,48 @@ import java.util.*;
 
 // Classe de execução.
 public class Carrossel {
-    
+
+    //Id's
+    public static int processoId = 0;
+    public static int processadorId = 0;
+
     private class Processo {
-        private String nome;
-        
-        public Processo(String nome) {
-            this.nome = nome;
+        private int id;
+        public Processo() {
+            this.id = processoId++;
         }
 
-        public String getNome() {
-            return nome;
+        public int getId() {
+            return id;
         }
     }
 
     private class Processador{
         private Random random = new Random();
+        private int id;
+
+        public Processador() {
+            this.id = processadorId++;
+        }
+
+        public int getId() {
+            return id;
+        }
 
         public void enviaProcesso(Processo processo, Processador processador, int numProcessadores){
-            System.out.println("Enviando processo " + processo.getNome() + " para processador " + processador);
+            System.out.println("Enviando processo " + processo.getId() + " para processador " + processador.getId());
             processador.rodaProcesso(processo, numProcessadores);
         }
 
         public boolean rodaProcesso(Processo processo, int numProcessadores){
-            System.out.println("Rodando processo " + processo.getNome());
+            System.out.println("Rodando processo " + processo.getId() + " No processador " + this.getId());
             double prob = 1.0 / (numProcessadores + 1);
             
             if (random.nextDouble() < prob){
-                System.out.println("Processo " + processo.getNome() + " finalizado.");
+                System.out.println("Processo " + processo.getId() + " finalizado.");
                 return true;
             } else {
-                System.out.println("Processo " + processo.getNome() + " não finalizado, reenviando...");
+                System.out.println("Processo " + processo.getId() + " não finalizado, reenviando...");
                 return false;
             }
         }
@@ -51,7 +63,7 @@ public class Carrossel {
         }
 
         for(Processador p : processadores){
-            Processo processo = new Carrossel().new Processo("Processo " + p);
+            Processo processo = new Carrossel().new Processo();
             p.enviaProcesso(processo, p, numProcessadores);
         }
     }
