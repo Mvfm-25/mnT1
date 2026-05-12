@@ -1,104 +1,65 @@
 // Resolução do t1 de mn.
 // [mvfm] 11-mai-2026
 
-import java.util.random.*;
-import java.util.*;
+import java.util.Random;
 
 // Classe de execução.
 public class Carrossel {
 
-    //Id's
-    public static int processoId = 0;
-    public static int processadorId = 0;
-
-    private static class Processo {
-        private int id;
-        public Processo() {
-            this.id = processoId++;
-        }
-
-        public int getId() {
-            return id;
-        }
-    }
-
-    private static class Processador {
-        private Random random = new Random();
-        private int id, pedidos;
-        private Processador p1, p2;
-
-        public Processador() {
-            this.id = processadorId++;
-            this.pedidos = 0;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public void setP1(Processador p1) {
-            this.p1 = p1;
-        }
-        public void setP2(Processador p2) {
-            this.p2 = p2;
-        }
-
-        public void enviaP1(Processo processo, int numProcessadores){
-            double probP1 = (numProcessadores + 1 - this.id) / (numProcessadores + 1.0);
-            if(random.nextDouble() < probP1){
-                p1.rodaProcesso(processo, numProcessadores);
-            } else {
-                System.out.println("Processo " + processo.getId() + " não foi enviado para o processador " + p1.getId());
-            }
-        }
-        
-        public void enviaP2(Processo processo, int numProcessadores){
-            double probP2 = (this.id - 1) / (numProcessadores + 1.0);
-            if(random.nextDouble() < probP2){
-                p2.rodaProcesso(processo, numProcessadores);
-            } else {
-                System.out.println("Processo " + processo.getId() + " não foi enviado para o processador " + p2.getId());
-            }
-        }
-
-        public boolean rodaProcesso(Processo processo, int numProcessadores){
-            pedidos++;
-            System.out.println("Rodando processo " + processo.getId() + " No processador " + this.getId());
-            double prob = 1.0 / (numProcessadores + 1);
-            
-            if (random.nextDouble() < prob){
-                System.out.println("Processo " + processo.getId() + " finalizado.");
-                return true;
-            } else {
-                System.out.println("Processo " + processo.getId() + " não finalizado, enviando para o próximo processador.");
-                enviaP1(processo, numProcessadores);
-                enviaP2(processo, numProcessadores);
-            }
-            return false;
-        }
-
-    }
+    static final int    AQUECIMENTO    = 50_000;
+    static final int    AMOSTRA        = 200_000;
+    static final Random random         = new Random();
 
     public static void main(String[] args) {
         int numProcessadores = Integer.parseInt(args[0]);
-        Processador[] processadores = new Processador[numProcessadores];
 
+        int[]    fila       = new int[numProcessadores];
+        double[] acumulado  = new double[numProcessadores];
+
+        for (int passo = 0; passo < AQUECIMENTO + AMOSTRA; passo++) {
+            fila[0]++;
+
+            int[] proximaFila = new int[numProcessadores];
+            for (int i = 0; i < numProcessadores; i++) {
+                int    processador  = i + 1;
+                double probCompleta = 1.0 / (numProcessadores + 1);
+                double probP1       = (numProcessadores + 1 - processador) / (numProcessadores + 1.0);
+
+                for (int k = 0; k < fila[i]; k++) {
+                    double sorteio = random.nextDouble();
+                    if (sorteio < probCompleta) {
+                        // pedido concluído
+                    } else if (sorteio < probCompleta + probP1) {
+                        proximaFila[(i + 1) % numProcessadores]++;
+                    } else {
+                        proximaFila[(i + 2) % numProcessadores]++;
+                    }
+                }
+            }
+            fila = proximaFila;
+
+            if (passo >= AQUECIMENTO) {
+                for (int i = 0; i < numProcessadores; i++) acumulado[i] += fila[i];
+            }
+        }
+
+        double[] media = new double[numProcessadores];
+        double   total = 0;
         for (int i = 0; i < numProcessadores; i++) {
-            processadores[i] = new Processador();
+            media[i]  = acumulado[i] / AMOSTRA;
+            total    += media[i];
         }
 
-        for (int i = 0; i < numProcessadores; i++) {
-            processadores[i].setP1(processadores[(i + 1) % numProcessadores]);
-            processadores[i].setP2(processadores[(i + 2) % numProcessadores]);
+        int maxProcessador = 0, minProcessador = 0;
+        for (int i = 1; i < numProcessadores; i++) {
+            if (media[i] > media[maxProcessador]) maxProcessador = i;
+            if (media[i] < media[minProcessador]) minProcessador = i;
         }
 
-        for (Processador p : processadores) {
-            Processo processo = new Processo();
-            p.rodaProcesso(processo, numProcessadores);
-        }
-       
-        for (Processador p : processadores) {
-            System.out.println("Processador " + p.getId() + " recebeu " + p.pedidos + " pedidos.");
-        }
+        System.out.printf("Pedidos no carrossel (estado estacionário): %.4f%n", total);
+        System.out.printf("Processador com mais pedidos:  %d (%.4f pedidos em média)%n",
+                maxProcessador + 1, media[maxProcessador]);
+        System.out.printf("Processador com menos pedidos: %d (%.4f pedidos em média)%n",
+                minProcessador + 1, media[minProcessador]);
     }
 }
