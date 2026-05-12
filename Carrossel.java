@@ -11,7 +11,7 @@ public class Carrossel {
     public static int processoId = 0;
     public static int processadorId = 0;
 
-    private class Processo {
+    private static class Processo {
         private int id;
         public Processo() {
             this.id = processoId++;
@@ -22,7 +22,7 @@ public class Carrossel {
         }
     }
 
-    private class Processador{
+    private static class Processador {
         private Random random = new Random();
         private int id;
         private Processador p1, p2;
@@ -43,7 +43,7 @@ public class Carrossel {
         }
 
         public void enviaP1(Processo processo, int numProcessadores){
-            double probP1 = (numProcessadores + 1.0) / (numProcessadores + 1.0);
+            double probP1 = (numProcessadores + 1 - this.id) / (numProcessadores + 1.0);
             if(random.nextDouble() < probP1){
                 p1.rodaProcesso(processo, numProcessadores);
             } else {
@@ -80,12 +80,17 @@ public class Carrossel {
         Processador[] processadores = new Processador[numProcessadores];
 
         for (int i = 0; i < numProcessadores; i++) {
-            processadores[i] = new Carrossel().new Processador();
+            processadores[i] = new Processador();
         }
 
-        for(Processador p : processadores){
-            Processo processo = new Carrossel().new Processo();
-            p.enviaProcesso(processo, p, numProcessadores);
+        for (int i = 0; i < numProcessadores; i++) {
+            processadores[i].setP1(processadores[(i + 1) % numProcessadores]);
+            processadores[i].setP2(processadores[(i + 2) % numProcessadores]);
+        }
+
+        for (Processador p : processadores) {
+            Processo processo = new Processo();
+            p.rodaProcesso(processo, numProcessadores);
         }
     }
 }
