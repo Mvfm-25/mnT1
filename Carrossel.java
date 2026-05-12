@@ -24,11 +24,12 @@ public class Carrossel {
 
     private static class Processador {
         private Random random = new Random();
-        private int id;
+        private int id, pedidos;
         private Processador p1, p2;
 
         public Processador() {
             this.id = processadorId++;
+            this.pedidos = 0;
         }
 
         public int getId() {
@@ -61,6 +62,7 @@ public class Carrossel {
         }
 
         public boolean rodaProcesso(Processo processo, int numProcessadores){
+            pedidos++;
             System.out.println("Rodando processo " + processo.getId() + " No processador " + this.getId());
             double prob = 1.0 / (numProcessadores + 1);
             
@@ -69,8 +71,10 @@ public class Carrossel {
                 return true;
             } else {
                 System.out.println("Processo " + processo.getId() + " não finalizado, enviando para o próximo processador.");
-                return false;
+                enviaP1(processo, numProcessadores);
+                enviaP2(processo, numProcessadores);
             }
+            return false;
         }
 
     }
@@ -91,6 +95,10 @@ public class Carrossel {
         for (Processador p : processadores) {
             Processo processo = new Processo();
             p.rodaProcesso(processo, numProcessadores);
+        }
+       
+        for (Processador p : processadores) {
+            System.out.println("Processador " + p.getId() + " recebeu " + p.pedidos + " pedidos.");
         }
     }
 }
