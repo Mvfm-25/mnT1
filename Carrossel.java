@@ -25,6 +25,7 @@ public class Carrossel {
     private class Processador{
         private Random random = new Random();
         private int id;
+        private Processador p1, p2;
 
         public Processador() {
             this.id = processadorId++;
@@ -34,9 +35,29 @@ public class Carrossel {
             return id;
         }
 
-        public void enviaProcesso(Processo processo, Processador processador, int numProcessadores){
-            System.out.println("Enviando processo " + processo.getId() + " para processador " + processador.getId());
-            processador.rodaProcesso(processo, numProcessadores);
+        public void setP1(Processador p1) {
+            this.p1 = p1;
+        }
+        public void setP2(Processador p2) {
+            this.p2 = p2;
+        }
+
+        public void enviaP1(Processo processo, int numProcessadores){
+            double probP1 = (numProcessadores + 1.0) / (numProcessadores + 1.0);
+            if(random.nextDouble() < probP1){
+                p1.rodaProcesso(processo, numProcessadores);
+            } else {
+                System.out.println("Processo " + processo.getId() + " não foi enviado para o processador " + p1.getId());
+            }
+        }
+        
+        public void enviaP2(Processo processo, int numProcessadores){
+            double probP2 = (this.id - 1) / (numProcessadores + 1.0);
+            if(random.nextDouble() < probP2){
+                p2.rodaProcesso(processo, numProcessadores);
+            } else {
+                System.out.println("Processo " + processo.getId() + " não foi enviado para o processador " + p2.getId());
+            }
         }
 
         public boolean rodaProcesso(Processo processo, int numProcessadores){
@@ -47,7 +68,7 @@ public class Carrossel {
                 System.out.println("Processo " + processo.getId() + " finalizado.");
                 return true;
             } else {
-                System.out.println("Processo " + processo.getId() + " não finalizado, reenviando...");
+                System.out.println("Processo " + processo.getId() + " não finalizado, enviando para o próximo processador.");
                 return false;
             }
         }
