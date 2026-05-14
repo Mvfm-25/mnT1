@@ -1,65 +1,55 @@
-// Resolução do t1 de mn.
-// [mvfm] 11-mai-2026
+// Resolução do t1 de mn, solução analítica via Eliminação de Gauss.
+// [mvfm] 14-mai-2026
 
-import java.util.Random;
-
-// Classe de execução.
 public class Carrossel {
 
-    static final int    AQUECIMENTO    = 50_000;
-    static final int    AMOSTRA        = 200_000;
-    static final Random random         = new Random();
-
     public static void main(String[] args) {
-        int numProcessadores = Integer.parseInt(args[0]);
+        int n = Integer.parseInt(args[0]);
 
-        int[]    fila       = new int[numProcessadores];
-        double[] acumulado  = new double[numProcessadores];
+        // Monta o sistema
+        double[][] A = new double[n][n + 1];
+        for (int i = 0; i < n; i++) A[i][i] = 1.0;
+        A[0][n] = 1.0;
 
-        for (int passo = 0; passo < AQUECIMENTO + AMOSTRA; passo++) {
-            fila[0]++;
+        for (int j = 0; j < n; j++) {
+            double fwd  = (double)(n - j) / (n + 1);
+            double skip = (double) j       / (n + 1);
+            A[(j + 1) % n][j] -= fwd;
+            A[(j + 2) % n][j] -= skip;
+        }
 
-            int[] proximaFila = new int[numProcessadores];
-            for (int i = 0; i < numProcessadores; i++) {
-                int    processador  = i + 1;
-                double probCompleta = 1.0 / (numProcessadores + 1);
-                double probP1       = (numProcessadores + 1 - processador) / (numProcessadores + 1.0);
+        // Eliminação de Gauss com pivotamento
+        for (int col = 0; col < n; col++) {
+            int piv = col;
+            for (int row = col + 1; row < n; row++)
+                if (Math.abs(A[row][col]) > Math.abs(A[piv][col])) piv = row;
+            double[] tmp = A[col]; A[col] = A[piv]; A[piv] = tmp;
 
-                for (int k = 0; k < fila[i]; k++) {
-                    double sorteio = random.nextDouble();
-                    if (sorteio < probCompleta) {
-                        // pedido concluído
-                    } else if (sorteio < probCompleta + probP1) {
-                        proximaFila[(i + 1) % numProcessadores]++;
-                    } else {
-                        proximaFila[(i + 2) % numProcessadores]++;
-                    }
-                }
-            }
-            fila = proximaFila;
-
-            if (passo >= AQUECIMENTO) {
-                for (int i = 0; i < numProcessadores; i++) acumulado[i] += fila[i];
+            for (int row = col + 1; row < n; row++) {
+                double fator = A[row][col] / A[col][col];
+                for (int k = col; k <= n; k++)
+                    A[row][k] -= fator * A[col][k];
             }
         }
 
-        double[] media = new double[numProcessadores];
-        double   total = 0;
-        for (int i = 0; i < numProcessadores; i++) {
-            media[i]  = acumulado[i] / AMOSTRA;
-            total    += media[i];
+        // Substituição retroativa
+        double[] pi = new double[n];
+        for (int i = n - 1; i >= 0; i--) {
+            pi[i] = A[i][n];
+            for (int j = i + 1; j < n; j++) pi[i] -= A[i][j] * pi[j];
+            pi[i] /= A[i][i];
         }
 
-        int maxProcessador = 0, minProcessador = 0;
-        for (int i = 1; i < numProcessadores; i++) {
-            if (media[i] > media[maxProcessador]) maxProcessador = i;
-            if (media[i] < media[minProcessador]) minProcessador = i;
+        double total = 0;
+        int max = 0, min = 0;
+        for (int i = 0; i < n; i++) {
+            total += pi[i];
+            if (pi[i] > pi[max]) max = i;
+            if (pi[i] < pi[min]) min = i;
         }
 
         System.out.printf("Pedidos no carrossel (estado estacionário): %.4f%n", total);
-        System.out.printf("Processador com mais pedidos:  %d (%.4f pedidos em média)%n",
-                maxProcessador + 1, media[maxProcessador]);
-        System.out.printf("Processador com menos pedidos: %d (%.4f pedidos em média)%n",
-                minProcessador + 1, media[minProcessador]);
+        System.out.printf("Processador com mais pedidos:  %d (%.4f pedidos em média)%n", max + 1, pi[max]);
+        System.out.printf("Processador com menos pedidos: %d (%.4f pedidos em média)%n", min + 1, pi[min]);
     }
 }

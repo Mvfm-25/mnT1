@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"C:\\\\GDM-05\\\\prog\\\\mnT1\"; Add-Type -AssemblyName \"System.Drawing\"; try { $pdf = [System.IO.File]::ReadAllBytes\\(\"t1.pdf\"\\); $text = [System.Text.Encoding]::UTF8.GetString\\($pdf\\); $text -replace '[^\\\\x20-\\\\x7E\\\\xC0-\\\\xFF]', ' ' | Select-String -Pattern '\\\\w{4,}' | Select-Object -First 100 } catch { Write-Output $_.Exception.Message })",
+      "Bash(python -c ' *)",
+      "Bash(python -m pip install pypdf2 --quiet)",
+      "Bash(javac Carrossel.java)",
+      "Bash(java Carrossel 1)",
+      "Bash(java Carrossel 2)",
+      "Bash(java Carrossel 5)",
+      "Bash(java Carrossel 10)"
+    ]
+  }
+}
